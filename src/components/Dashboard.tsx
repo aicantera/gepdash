@@ -20,7 +20,8 @@ import {
   Calendar,
   UserCog,
   Bot,
-  Building
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -62,7 +63,6 @@ const Dashboard: React.FC = () => {
     'documents': <FileText size={20} />,
     'alerts': <AlertTriangle size={20} />,
     'clients': <Users size={20} />,
-    'companies': <Building size={20} />,
     'themes': <Settings size={20} />,
     'users': <UserCog size={20} />,
     'bots': <Bot size={20} />
@@ -462,7 +462,7 @@ const Dashboard: React.FC = () => {
                           }}
                         />
                         <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                          {item.documents} docs
+                          {item.documents} Documentos
                         </span>
                       </div>
                     </div>
@@ -499,7 +499,7 @@ const Dashboard: React.FC = () => {
           {/* Logo y título - siempre visible en móvil, condicional en desktop */}
           {(!sidebarCollapsed || mobileMenuOpen) && (
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-8 flex items-center justify-center">
+              <div className="w-20 h-16 flex items-center justify-center">
                 <img 
                   src={logoNegro} 
                   alt="GEP Logo" 
@@ -510,25 +510,21 @@ const Dashboard: React.FC = () => {
             </div>
           )}
           
-          {/* Solo logo cuando está colapsado en desktop */}
-          {sidebarCollapsed && !mobileMenuOpen && (
-            <div className="w-full flex justify-center">
-              <div className="w-8 h-6 flex items-center justify-center">
-                <img 
-                  src={logoNegro} 
-                  alt="GEP Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </div>
-          )}
-          
-          {/* Botón de colapso - oculto en móvil */}
+          {/* Botón de colapsar/expandir */}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden md:block p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className={`
+              p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100
+              transition-all duration-200
+              ${sidebarCollapsed ? 'ml-auto' : ''}
+            `}
+            title={sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
-            {sidebarCollapsed ? <Menu size={20} /> : <X size={20} />}
+            {sidebarCollapsed ? (
+              <ChevronRight size={20} />
+            ) : (
+              <ChevronLeft size={20} />
+            )}
           </button>
           
           {/* Botón de cerrar para móvil */}
@@ -543,7 +539,7 @@ const Dashboard: React.FC = () => {
         {/* Navegación */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
-            {allowedModules.map((module) => (
+            {allowedModules.filter(module => module !== 'companies').map((module) => (
               <li key={module}>
                 <button
                   onClick={() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Eye, EyeOff, Mail, Lock, Shield } from 'lucide-react'
-import logoBlanco from '../assets/images/logoblanco.png'
+import logoNegro from '../assets/images/logonegro.jpg'
 
 interface LoginFormProps {
   onLogin: () => void
@@ -13,6 +13,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [errors, setErrors] = useState<{[key: string]: string}>({})
 
   // Actualizar título del documento para la página de login
@@ -36,7 +37,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     }
     
     if (!email.endsWith('@gep.com.mx')) {
-      return 'Solo se permiten correos institucionales de GEP (@gep.com.mx)'
+      return 'Solo se permiten correos empresariales de GEP (@gep.com.mx)'
     }
     
     return null
@@ -75,25 +76,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     }
     
     setLoading(true)
+    setError(null)
 
     try {
       const result = await signIn(email.trim(), password)
 
       if (!result.success) {
-        if (result.error?.includes('Invalid login credentials') || 
-            result.error?.includes('invalid_credentials')) {
-          setErrors({ 
-            general: 'El usuario no está registrado en la plataforma. Verifique sus datos o contacte al administrador.' 
-          })
-        } else if (result.error?.includes('Wrong password') || 
-                   result.error?.includes('incorrect password')) {
-          setErrors({ 
-            password: 'Contraseña incorrecta. Intente nuevamente.' 
-          })
+        if (result.error === 'El usuario no está registrado en la plataforma. Verifique sus datos o contacte al administrador.') {
+          setErrors({ general: result.error })
+          setPassword('')
+        } else if (result.error === 'Contraseña incorrecta. Intente nuevamente.') {
+          setErrors({ password: result.error })
+          setPassword('')
+        } else if (result.error?.includes('inactiva') || result.error?.includes('desactivada')) {
+          setErrors({ general: result.error })
         } else {
-          setErrors({ 
-            general: 'Error de autenticación. Contacte al administrador si el problema persiste.' 
-          })
+          setError('Error de autenticación. Contacte al administrador si el problema persiste.')
         }
         return
       }
@@ -101,9 +99,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       onLogin()
     } catch (err) {
       console.error('Error inesperado:', err)
-      setErrors({ 
-        general: 'Error de conexión. Verifique su internet e intente nuevamente.' 
-      })
+      setError('Error de conexión. Verifique su internet e intente nuevamente.')
     } finally {
       setLoading(false)
     }
@@ -114,11 +110,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       <div className="login-card">
         {/* Header */}
         <div className="login-header">
-          <div className="w-20 h-20 bg-white bg-opacity-10 rounded-2xl flex items-center justify-center mx-auto mb-4 p-2">
+          <div className="flex items-center justify-center mx-auto mb-6">
             <img 
-              src={logoBlanco} 
+              src={logoNegro} 
               alt="GEP Logo" 
-              className="w-full h-full object-contain"
+              className="w-32 h-32 object-contain drop-shadow-lg"
             />
           </div>
           <h1 className="text-3xl font-bold mb-2">
@@ -132,10 +128,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         {/* Form */}
         <div className="login-form">
           <form onSubmit={handleLogin} className="space-y-6">
-            {/* General Error */}
-            {errors.general && (
-              <div className="error-message">
-                {errors.general}
+            {/* General Error o Error de Contraseña */}
+            {(errors.general || errors.password || error) && (
+              <div className="error-message bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-center font-semibold">
+                {errors.general || errors.password || error}
               </div>
             )}
 
@@ -181,6 +177,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
               <label className="form-label">
                 Contraseña
               </label>
+              {errors.password && (
+                <div className="error-message bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-2 text-center font-semibold">
+                  {errors.password}
+                </div>
+              )}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
@@ -191,16 +192,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    if (errors.password || errors.general) {
-                      setErrors(prev => {
-                        const newErrors = {...prev}
-                        delete newErrors.password
-                        delete newErrors.general
-                        return newErrors
-                      })
+                    if (errors.password) {
+                      setErrors(prev => ({ ...prev, password: '' }))
                     }
                   }}
-                  className={`form-input pl-10 pr-12 ${
+                  className={`form-input pl-10 ${
                     errors.password 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : ''
@@ -220,9 +216,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">{errors.password}</p>
-              )}
             </div>
 
             {/* Login Button */}

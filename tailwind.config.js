@@ -13,12 +13,24 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#3C3C3B", // Black 90% Pantone 431 U
+          dark: "#73797C", // Pantone 201 U
+          red: "#B20933", // Pantone 201 U
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#D1D3D3", // Pantone 427
+          light: "#F2F1F1", // Pantone 427 - 30%
+          yellow: "#FEBD3F", // Pantone 136
+          orange: "#F58220", // Pantone 151
+          red: "#EE2A37", // Pantone 1788
+          blue: "#1A468D", // Pantone 286
+          cyan: "#6BA2B8", // Pantone 549 C
+        },
+        // Neutrales
+        neutral: {
+          100: "#F2F1F1",
+          200: "#D1D3D3",
+          300: "#73797C",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",

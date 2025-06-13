@@ -90,12 +90,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('📊 Resultado getUserInfo:', { data, error: error?.message })
       
       if (error || !data) {
-        console.log('⚠️ Usuario no encontrado en la tabla usuarios, usando rol por defecto')
-        // Si no existe en la tabla usuarios, usar rol basado en email como fallback
-        const defaultRole: UserRole = (email.includes('admin') || email.includes('administrador')) 
-          ? 'Administrador' 
-          : 'Analista GEP'
-        return { role: defaultRole, activo: true }
+        console.log('⚠️ Usuario no encontrado en la tabla usuarios, retornando null')
+        return null
       }
       
       const result = {
@@ -288,6 +284,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Verificar si el usuario existe y está activo antes de intentar el login
       const userInfo = await getUserInfo(email.trim())
       
+      if (!userInfo) {
+        return {
+          success: false,
+          error: 'El usuario no está registrado en la plataforma. Verifique sus datos o contacte al administrador.'
+        }
+      }
       if (userInfo && !userInfo.activo) {
         return { 
           success: false, 
@@ -301,10 +303,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
 
       if (error) {
+        // Si el usuario existe pero la contraseña es incorrecta
         if (error.message.includes('Invalid login credentials') || error.message.includes('invalid_credentials')) {
-          return { 
-            success: false, 
-            error: 'El usuario no está registrado en la plataforma. Verifique sus datos o contacte al administrador.' 
+          return {
+            success: false,
+            error: 'Contraseña incorrecta. Intente nuevamente.'
           }
         }
         return { 
